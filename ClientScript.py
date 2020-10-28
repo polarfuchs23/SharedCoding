@@ -3,7 +3,10 @@ import selectors
 
 sel = selectors.DefaultSelector()
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect_ex(('192.168.0.203', 8080))
+ip = "95.91.247.164"
+s.connect_ex((ip, 5000))
 s.send(b'Data')
-newData = s.recv(1024)
-print(newData)
+newDataA = s.recv(1024)
+s.send(b'2ndData')
+newDataB = s.recv(1024)
+print(newDataA, " ", newDataB)
