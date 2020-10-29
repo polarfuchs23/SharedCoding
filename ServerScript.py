@@ -5,7 +5,7 @@ import types
 
 sel = selectors.DefaultSelector()
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "95.91.247.164"
+ip = "192.168.188.21"
 print(ip)
 lsock.bind((ip, 5000))
 lsock.listen()
@@ -16,8 +16,8 @@ events = selectors.EVENT_READ | selectors.EVENT_WRITE
 global startTimes
 global sockets
 
-sockets = []
 startTimes = []
+sockets = []
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()
@@ -36,8 +36,15 @@ def service_connection(key, mask):
         if recv_data:
             data.outb += recv_data
             print("Received data:", recv_data, "from", sock)
-            startTimes.append(time.time())
-            sockets.append(sock)
+            if sock not in sockets:
+                startTimes.append(time.time())
+                print(startTimes)
+                sockets.append(sock)
+            else:
+                print("First: ", startTimes)
+                startTimes[sockets.index(sock)] = time.time()
+                print(startTimes)
+                pass
     '''
         else:
             sel.unregister(sock)
@@ -52,13 +59,16 @@ def service_connection(key, mask):
 
 while True:
     events = sel.select(timeout=None)
+    for i in range(len(startTimes)):
+        if time.time()-startTimes[i] > 10:
+            sockets[i-1].send(b'Your were disconnected')
+            sel.unregister(sockets[i])
+            print("Disconnected connection to", sockets[i-1])
+            sockets[i-1].close()
+            del sockets[i-1]
+            del startTimes[i-1]
     for key, mask in events:
         if key.data is None:
             accept_wrapper(key.fileobj)
         else:
             service_connection(key, mask)
-    for i in range(len(startTimes)-1):
-        if time.time()-startTimes[i] > 60:
-            sel.unregister(sockets[i])
-            print("Disconnected connection to", sockets[i])
-            sockets[i].close()
