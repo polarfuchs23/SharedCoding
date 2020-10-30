@@ -79,7 +79,7 @@ def service_connection(key, mask):
 
         if recv_data:
             data.outb += recv_data
-            #printf(["received:", recv_data, "from  ", sock], FORMAT)
+            printf(["received:", recv_data, "from  ", sock], FORMAT)
             if sock not in sockets:
                 startTimes.append(time.time())
                 sockets.append(sock)
@@ -89,9 +89,19 @@ def service_connection(key, mask):
 
     if mask & selectors.EVENT_WRITE:
         if data.outb:
-            #printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
-            sent = sock.send(data.outb)  # Should be ready to write
-            data.outb = data.outb[sent:]
+            printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
+            #sent = sock.send(data.outb)  # Should be ready to write
+            #data.outb = data.outb[sent:]
+            send(data.outb,sock)
+
+
+def send(content, sock):
+    sock.send(str(len(content.decode("ascii"))).encode("utf-8")+content)
+
+
+def sendstring(content, sock):
+    sock.send((str(len(content))+content).encode("utf-8"))
+
 
 while True:
     events = sel.select()

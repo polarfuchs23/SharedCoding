@@ -3,8 +3,11 @@ import selectors
 import time
 
 
-def send(content):
-    global sock
+def send(content, sock):
+    sock.send(str(len(content.decode("ascii"))).encode("utf-8")+content)
+
+
+def sendstring(content, sock):
     sock.send((str(len(content))+content).encode("utf-8"))
 
 
@@ -15,14 +18,14 @@ ip = "mineburg.firewall-gateway.com"
 
 
 print(sock.connect_ex((ip, 5000)))
-send("Data")
-print("received:  ",sock.recv(1024).decode("ascii"))
+sendstring("Data",sock)
+print("received:  ", sock.recv(1024).decode("ascii"))
 
 time.sleep(2)
 
 while True:
     time.sleep(0.4)
-    send(1000*"---Test---")
+    sendstring(1000*"---Test---", sock)
     #sock.recv(40240000).decode("ascii")
     print("runs")
     print("received:  ",sock.recv(40240000).decode("ascii"))
