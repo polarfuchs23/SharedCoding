@@ -1,7 +1,15 @@
+#
+#       implement buffering for recieved messages (header etc.)
+#
+#       fix crashing
+#
+#
+
 import socket
 import selectors
 import time
 import keyboard
+
 
 
 def send(content, sock):
@@ -14,7 +22,7 @@ def sendstring(content, sock):
 
 sel = selectors.DefaultSelector()
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "192.168.0.203"
+ip = "mineburg.firewall-gateway.com"
 #ip = "192.168.178.40"
 
 

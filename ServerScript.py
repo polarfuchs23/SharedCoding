@@ -100,10 +100,11 @@ def service_connection(key, mask):
 
     elif mask & selectors.EVENT_WRITE:
         if data.outb:
-            printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
+            #printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
             #sent = sock.send(data.outb)  # Should be ready to write
             #data.outb = data.outb[sent:]
             send(data.outb,sock)
+            data.outb = b''
 
 def send(content, sock):
     sock.send(str(len(content.decode("ascii"))).encode("utf-8")+content)
