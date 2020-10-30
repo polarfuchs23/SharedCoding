@@ -4,9 +4,13 @@ import time
 import types
 from PrintFormatter import printf
 
-DISCONNECTAFTERNOTSENDING = 10
+DISCONNECTAFTERNOTSENDING = 30
 FORMAT=[0, 12, 140, 148]
 DEVIDERSTRING = 500*"-"
+
+
+runs = 0
+totaltime = 0
 
 
 sel = selectors.DefaultSelector()
@@ -36,29 +40,46 @@ def accept_wrapper(sock):
     sel.register(conn, events, data=data)
 
 def service_connection(key, mask):
-    global startTime
+    global runs
+    global totaltime
     sock = key.fileobj
     data = key.data
     if mask & selectors.EVENT_READ:
-
-        length = sock.recv(10).decode("ascii")  # Should be ready to read
-        print(length)
+        #print("---------------hi---------------")
+        length1 = sock.recv(10).decode("ascii")  # Should be ready to read
+        length=""
         recv_data=b''
+        print(length1)
+        for s in length1:
+            if s.isdigit():
+                length+=s
+            else:
+                recv_data+=s.encode("utf-8")
 
-        run=True
-        while run:
-            try:
-                recv_data += (sock.recv(1))
-                run=False
-            except:
-                run=True
 
-        for i in range(int(length)-1):
-            recv_data += (sock.recv(1))
+        print(length)
+        t1=time.time();
+        while len(recv_data)<int(length):
+            run=True
+            while run:
+                try:
+                    recv_data += (sock.recv(int(length)))
+                    run = False
+                except:
+                    run = True
+
+        totaltime += time.time()-t1
+        runs += 1
+
+        print("took",time.time()-t1)
+      #  for i in range(int(int(length)/100)-1):
+      #      recv_data += (sock.recv(100))
+
+        print("average",totaltime/runs,"over",runs,"runs")
 
         if recv_data:
             data.outb += recv_data
-            printf(["received:", recv_data, "from  ", sock], FORMAT)
+            #printf(["received:", recv_data, "from  ", sock], FORMAT)
             if sock not in sockets:
                 startTimes.append(time.time())
                 sockets.append(sock)
@@ -68,7 +89,7 @@ def service_connection(key, mask):
 
     if mask & selectors.EVENT_WRITE:
         if data.outb:
-            printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
+            #printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
             sent = sock.send(data.outb)  # Should be ready to write
             data.outb = data.outb[sent:]
 
