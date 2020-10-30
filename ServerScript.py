@@ -5,7 +5,7 @@ import types
 
 sel = selectors.DefaultSelector()
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "192.168.188.21"
+ip = "0.0.0.0"
 print(ip)
 lsock.bind((ip, 5000))
 lsock.listen()
@@ -38,12 +38,9 @@ def service_connection(key, mask):
             print("Received data:", recv_data, "from", sock)
             if sock not in sockets:
                 startTimes.append(time.time())
-                print(startTimes)
                 sockets.append(sock)
             else:
-                print("First: ", startTimes)
                 startTimes[sockets.index(sock)] = time.time()
-                print(startTimes)
                 pass
     '''
         else:
