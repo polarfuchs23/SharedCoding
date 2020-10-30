@@ -44,56 +44,66 @@ def service_connection(key, mask):
     global totaltime
     sock = key.fileobj
     data = key.data
+    if sock not in sockets:
+        startTimes.append(time.time())
+        sockets.append(sock)
+    else:
+        startTimes[sockets.index(sock)] = time.time()
+        pass
     if mask & selectors.EVENT_READ:
         #print("---------------hi---------------")
         length1 = sock.recv(10).decode("ascii")  # Should be ready to read
-        length=""
-        recv_data=b''
-        print(length1)
-        for s in length1:
-            if s.isdigit():
-                length+=s
-            else:
-                recv_data+=s.encode("utf-8")
+        print(length1, " ", length1.encode("utf-8"))
+        if length1 == "g3i3Nf8320":
+            #send("You were disconnected!".encode("utf-8"), sock)
+            sel.unregister(sock)
+            print(DEVIDERSTRING)
+            print("disconnected: ", sock)
+            print(DEVIDERSTRING)
+            del startTimes[sockets.index(sock)]
+            del sockets[sockets.index(sock)]
+            sock.close()
+        else:
+            length=""
+            recv_data=b''
+            print(length1)
+            for s in length1:
+                if s.isdigit():
+                    length+=s
+                else:
+                    recv_data+=s.encode("utf-8")
 
 
-        print(length)
-        t1=time.time();
-        while len(recv_data)<int(length):
-            run=True
-            while run:
-                try:
-                    recv_data += (sock.recv(int(length)))
-                    run = False
-                except:
-                    run = True
+            print(length)
+            t1=time.time();
+            while len(recv_data)<int(length):
+                run=True
+                while run:
+                    try:
+                        recv_data += (sock.recv(int(length)))
+                        run = False
+                    except:
+                        run = True
 
-        totaltime += time.time()-t1
-        runs += 1
+            totaltime += time.time()-t1
+            runs += 1
 
-        print("took",time.time()-t1)
-      #  for i in range(int(int(length)/100)-1):
-      #      recv_data += (sock.recv(100))
+            print("took",time.time()-t1)
+          #  for i in range(int(int(length)/100)-1):
+          #      recv_data += (sock.recv(100))
 
-        print("average",totaltime/runs,"over",runs,"runs")
+            print("average",totaltime/runs,"over",runs,"runs")
 
-        if recv_data:
-            data.outb += recv_data
-            printf(["received:", recv_data, "from  ", sock], FORMAT)
-            if sock not in sockets:
-                startTimes.append(time.time())
-                sockets.append(sock)
-            else:
-                startTimes[sockets.index(sock)] = time.time()
-                pass
+            if recv_data:
+                data.outb += recv_data
+                printf(["received:", recv_data, "from  ", sock], FORMAT)
 
-    if mask & selectors.EVENT_WRITE:
+    elif mask & selectors.EVENT_WRITE:
         if data.outb:
             printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
             #sent = sock.send(data.outb)  # Should be ready to write
             #data.outb = data.outb[sent:]
             send(data.outb,sock)
-
 
 def send(content, sock):
     sock.send(str(len(content.decode("ascii"))).encode("utf-8")+content)

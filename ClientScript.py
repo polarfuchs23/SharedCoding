@@ -1,6 +1,7 @@
 import socket
 import selectors
 import time
+import keyboard
 
 
 def send(content, sock):
@@ -13,7 +14,7 @@ def sendstring(content, sock):
 
 sel = selectors.DefaultSelector()
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "mineburg.firewall-gateway.com"
+ip = "192.168.0.203"
 #ip = "192.168.178.40"
 
 
@@ -25,8 +26,12 @@ time.sleep(2)
 
 while True:
     time.sleep(0.4)
-    sendstring(1000*"---Test---", sock)
+    if keyboard.is_pressed('esc'):
+        sock.send("g3i3Nf8320".encode("utf-8"))
+        #print(sock.recv(1024).decode("ascii"))
+        break
+    sendstring("a", sock)
     #sock.recv(40240000).decode("ascii")
     print("runs")
     print("received:  ",sock.recv(40240000).decode("ascii"))
-print("received:  ",sock.recv(1024).decode("ascii"))
+print("received:  ", sock.recv(1024).decode("ascii"))
