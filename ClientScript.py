@@ -1,21 +1,23 @@
 import socket
 import selectors
-import time
 
 sel = selectors.DefaultSelector()
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "ip"
+ip = "192.168.0.203"
 print(s.connect_ex((ip, 5000)))
-s.send(b'Data')
+
+leftfor = 0
+
+msg = "Teweffewfefewfwefefewefwfewfewfewewf"
+if len(msg) > 16:
+    for i in range(int(len(msg)/16)):
+        s.send(msg[i*16:(i+1)*16].encode("utf-8"))
+        print("send: ", msg[i*16:(i+1)*16], " ", msg[i*16:(i+1)*16].encode("utf-8"))
+        leftfor = i+1
+    s.send(msg[leftfor*16:].encode("utf-8"))
+else:
+    s.send(msg.encode("utf-8"))
+print("send: ", msg[leftfor*16:], " ", msg[leftfor*16:].encode("utf-8"))
 newDataA = s.recv(1024)
 print(newDataA.decode("ascii"))
-time.sleep(4)
-s.send(b'2ndData')
-newDataB = s.recv(1024)
-answers = []
-#for i in range(100):
- #   s.send(bytes([i]))
-  #  answers.append(s.recv(1024))
-print(newDataB.decode("ascii"))
-print(answers)
 print(s.recv(1024).decode("ascii"))

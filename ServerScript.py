@@ -12,6 +12,8 @@ lsock.listen()
 lsock.setblocking(False)
 sel.register(lsock, selectors.EVENT_READ, data=None)
 
+headersize = 9
+
 events = selectors.EVENT_READ | selectors.EVENT_WRITE
 global startTimes
 global sockets
@@ -28,11 +30,10 @@ def accept_wrapper(sock):
     sel.register(conn, events, data=data)
 
 def service_connection(key, mask):
-    global startTime
     sock = key.fileobj
     data = key.data
     if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)  # Should be ready to read
+        recv_data = sock.recv(16)  # Should be ready to read
         if recv_data:
             data.outb += recv_data
             print("Received data:", recv_data, "from", sock)
@@ -42,12 +43,8 @@ def service_connection(key, mask):
             else:
                 startTimes[sockets.index(sock)] = time.time()
                 pass
-    '''
-        else:
-            sel.unregister(sock)
-            print("Disconnected connection to", sock)
-            sock.close()
-        '''
+        #Das ist das seltsame rturn
+        return recv_data
     if mask & selectors.EVENT_WRITE:
         if data.outb:
             print('echoing', repr(data.outb), 'to', data.addr)
@@ -57,9 +54,9 @@ def service_connection(key, mask):
 while True:
     events = sel.select(timeout=None)
     for i in range(len(startTimes)):
-        if time.time()-startTimes[i] > 10:
+        if time.time()-startTimes[i-1] > 10:
             sockets[i-1].send(b'Your were disconnected')
-            sel.unregister(sockets[i])
+            sel.unregister(sockets[i-1])
             print("Disconnected connection to", sockets[i-1])
             sockets[i-1].close()
             del sockets[i-1]
@@ -68,4 +65,4 @@ while True:
         if key.data is None:
             accept_wrapper(key.fileobj)
         else:
-            service_connection(key, mask)
+            length = service_connection(key, mask)
