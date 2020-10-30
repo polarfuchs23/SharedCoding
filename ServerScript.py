@@ -1,3 +1,7 @@
+#
+#       note: sending to requests with 10 seconds between them to (mineburg.firewall-gateway.com, 5000) will wake up the computer from standby and connect to the server
+#
+
 import socket
 import selectors
 import time
