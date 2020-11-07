@@ -31,6 +31,53 @@ global sockets
 startTimes = []
 sockets = []
 
+def awaitdata(sock):
+    global runs
+    global totaltime
+
+    recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
+
+    print(recievedlength, " ", recievedlength.encode("utf-8"))
+    if recievedlength == "g3i3Nf8320":
+        sel.unregister(sock)
+        print(DEVIDERSTRING)
+        print("disconnected: ", sock)
+        print(DEVIDERSTRING)
+        del startTimes[sockets.index(sock)]
+        del sockets[sockets.index(sock)]
+        sock.close()
+        return -1
+    else:
+        length = ""
+        recv_data = b''
+        print(recievedlength)
+        for s in recievedlength:
+            if s.isdigit():
+                length += s
+            else:
+                recv_data += s.encode("utf-8")
+
+        print(length)
+        t1 = time.time();
+        while len(recv_data) < int(length):
+            run = True
+            while run:
+                try:
+                    recv_data += (sock.recv(int(length)))
+                    run = False
+                except:
+                    run = True
+
+        totaltime += time.time() - t1
+        runs += 1
+
+        print("took", time.time() - t1)
+
+        print("average", totaltime / runs, "over", runs, "runs")
+
+        return recv_data
+
+
 
 def accept_wrapper(sock):
     conn, addr = sock.accept()
@@ -56,48 +103,10 @@ def service_connection(key, mask):
         pass
     if mask & selectors.EVENT_READ:
         try:
-            recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
-
-            print(recievedlength, " ", recievedlength.encode("utf-8"))
-            if recievedlength == "g3i3Nf8320":
-                sel.unregister(sock)
-                print(DEVIDERSTRING)
-                print("disconnected: ", sock)
-                print(DEVIDERSTRING)
-                del startTimes[sockets.index(sock)]
-                del sockets[sockets.index(sock)]
-                sock.close()
-            else:
-                length = ""
-                recv_data = b''
-                print(recievedlength)
-                for s in recievedlength:
-                    if s.isdigit():
-                        length += s
-                    else:
-                        recv_data += s.encode("utf-8")
-
-                print(length)
-                t1 = time.time();
-                while len(recv_data) < int(length):
-                    run = True
-                    while run:
-                        try:
-                            recv_data += (sock.recv(int(length)))
-                            run = False
-                        except:
-                            run = True
-
-                totaltime += time.time() - t1
-                runs += 1
-
-                print("took", time.time() - t1)
-
-                print("average", totaltime / runs, "over", runs, "runs")
-
-                if recv_data:
-                    data.outb += recv_data
-                    # printf(["received:", recv_data, "from  ", sock], FORMAT)
+            recv_data = awaitdata(sock)
+            if recv_data and recv_data != -1:
+                data.outb += recv_data
+                # printf(["received:", recv_data, "from  ", sock], FORMAT)
         except:
             sel.unregister(sock)
             print(DEVIDERSTRING)
