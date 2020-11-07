@@ -9,13 +9,11 @@ import types
 from PrintFormatter import printf
 
 DISCONNECTAFTERNOTSENDING = 30
-FORMAT=[0, 12, 140, 148]
-DEVIDERSTRING = 500*"-"
-
+FORMAT = [0, 12, 140, 148]
+DEVIDERSTRING = 500 * "-"
 
 runs = 0
 totaltime = 0
-
 
 sel = selectors.DefaultSelector()
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -33,6 +31,7 @@ global sockets
 startTimes = []
 sockets = []
 
+
 def accept_wrapper(sock):
     conn, addr = sock.accept()
     conn.setblocking(False)
@@ -42,6 +41,7 @@ def accept_wrapper(sock):
     print("accepted:    ", sock)
     print(DEVIDERSTRING)
     sel.register(conn, events, data=data)
+
 
 def service_connection(key, mask):
     global runs
@@ -55,11 +55,50 @@ def service_connection(key, mask):
         startTimes[sockets.index(sock)] = time.time()
         pass
     if mask & selectors.EVENT_READ:
-        #print("---------------hi---------------")
-        recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
-        print(recievedlength, " ", recievedlength.encode("utf-8"))
-        if recievedlength == "g3i3Nf8320":
-            #send("You were disconnected!".encode("utf-8"), sock)
+        try:
+            recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
+
+            print(recievedlength, " ", recievedlength.encode("utf-8"))
+            if recievedlength == "g3i3Nf8320":
+                sel.unregister(sock)
+                print(DEVIDERSTRING)
+                print("disconnected: ", sock)
+                print(DEVIDERSTRING)
+                del startTimes[sockets.index(sock)]
+                del sockets[sockets.index(sock)]
+                sock.close()
+            else:
+                length = ""
+                recv_data = b''
+                print(recievedlength)
+                for s in recievedlength:
+                    if s.isdigit():
+                        length += s
+                    else:
+                        recv_data += s.encode("utf-8")
+
+                print(length)
+                t1 = time.time();
+                while len(recv_data) < int(length):
+                    run = True
+                    while run:
+                        try:
+                            recv_data += (sock.recv(int(length)))
+                            run = False
+                        except:
+                            run = True
+
+                totaltime += time.time() - t1
+                runs += 1
+
+                print("took", time.time() - t1)
+
+                print("average", totaltime / runs, "over", runs, "runs")
+
+                if recv_data:
+                    data.outb += recv_data
+                    # printf(["received:", recv_data, "from  ", sock], FORMAT)
+        except:
             sel.unregister(sock)
             print(DEVIDERSTRING)
             print("disconnected: ", sock)
@@ -67,61 +106,26 @@ def service_connection(key, mask):
             del startTimes[sockets.index(sock)]
             del sockets[sockets.index(sock)]
             sock.close()
-        else:
-            length=""
-            recv_data=b''
-            print(recievedlength)
-            for s in recievedlength:
-                if s.isdigit():
-                    length+=s
-                else:
-                    recv_data+=s.encode("utf-8")
-
-
-            print(length)
-            t1=time.time();
-            while len(recv_data)<int(length):
-                run=True
-                while run:
-                    try:
-                        recv_data += (sock.recv(int(length)))
-                        run = False
-                    except:
-                        run = True
-
-            totaltime += time.time()-t1
-            runs += 1
-
-            print("took",time.time()-t1)
-          #  for i in range(int(int(length)/100)-1):
-          #      recv_data += (sock.recv(100))
-
-            print("average",totaltime/runs,"over",runs,"runs")
-
-            if recv_data:
-                data.outb += recv_data
-                printf(["received:", recv_data, "from  ", sock], FORMAT)
 
     elif mask & selectors.EVENT_WRITE:
         if data.outb:
-            #printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
-            #sent = sock.send(data.outb)  # Should be ready to write
-            #data.outb = data.outb[sent:]
-            send(data.outb,sock)
+            # printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
+            send(data.outb, sock)
             data.outb = b''
 
+
 def send(content, sock):
-    sock.send(str(len(content.decode("ascii"))).encode("utf-8")+content)
+    sock.send(str(len(content.decode("ascii"))).encode("utf-8") + content)
 
 
 def sendstring(content, sock):
-    sock.send((str(len(content))+content).encode("utf-8"))
+    sock.send((str(len(content)) + content).encode("utf-8"))
 
 
 while True:
     events = sel.select()
-    for i in range(-1, len(startTimes)-1):
-        if time.time()-startTimes[i] > DISCONNECTAFTERNOTSENDING:
+    for i in range(-1, len(startTimes) - 1):
+        if time.time() - startTimes[i] > DISCONNECTAFTERNOTSENDING:
             sockets[i].send(b'Your were disconnected')
             sel.unregister(sockets[i])
             print(DEVIDERSTRING)
