@@ -56,9 +56,9 @@ def service_connection(key, mask):
         pass
     if mask & selectors.EVENT_READ:
         #print("---------------hi---------------")
-        length1 = sock.recv(10).decode("ascii")  # Should be ready to read
-        print(length1, " ", length1.encode("utf-8"))
-        if length1 == "g3i3Nf8320":
+        recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
+        print(recievedlength, " ", recievedlength.encode("utf-8"))
+        if recievedlength == "g3i3Nf8320":
             #send("You were disconnected!".encode("utf-8"), sock)
             sel.unregister(sock)
             print(DEVIDERSTRING)
@@ -70,8 +70,8 @@ def service_connection(key, mask):
         else:
             length=""
             recv_data=b''
-            print(length1)
-            for s in length1:
+            print(recievedlength)
+            for s in recievedlength:
                 if s.isdigit():
                     length+=s
                 else:

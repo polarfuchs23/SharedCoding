@@ -43,3 +43,26 @@ while True:
     print("runs")
     print("received:  ",sock.recv(40240000).decode("ascii"))
 print("received:  ", sock.recv(1024).decode("ascii"))
+
+
+def awaitdata(sock):
+    recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
+    print(recievedlength, " ", recievedlength.encode("utf-8"))
+    length = ""
+    recv_data = b''
+    for s in recievedlength:
+        if s.isdigit():
+            length+=s
+        else:
+            recv_data+=s.encode("utf-8")
+
+    print(length)
+    t1=time.time();
+    while len(recv_data)<int(length):
+        run=True
+        while run:
+            try:
+                recv_data += (sock.recv(int(length)))
+                run = False
+            except:
+                run = True
