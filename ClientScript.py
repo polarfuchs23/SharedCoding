@@ -66,6 +66,6 @@ while True:
         sock.send("g3i3Nf8320".encode("utf-8"))
         break
     sendstring(10000000 * "a", sock)
-    print("received:  ", awaitdata(sock))
+    print("received:  ", awaitdata(sock)
 print()
 print("done")
