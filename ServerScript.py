@@ -1,5 +1,6 @@
 #
-#       note: sending to requests with 10 seconds between them to (mineburg.firewall-gateway.com, 5000) will wake up the computer from standby and connect to the server
+#       note: sending images etc. doesnt work
+#       expand on send hex and resieving hex
 #
 
 import socket

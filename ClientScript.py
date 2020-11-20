@@ -50,7 +50,8 @@ def awaitdata(sock):
                 except:
                     run = True
         return recv_data.decode("ascii")
-    except:
+    except Exception as e:
+        print(e)
         return -1
 
 
