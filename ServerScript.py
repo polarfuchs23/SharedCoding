@@ -6,7 +6,19 @@ import socket
 import selectors
 import time
 import types
+import sys, os
+import FileInterface
 from PrintFormatter import printf
+
+files = []
+serverPath = sys.argv[0]
+folderPath = os.path.dirname(serverPath)
+for file in os.listdir(folderPath):
+    if os.path.isfile(file) and ".py" not in file:
+        files.append(FileInterface.readFile(file))
+
+for file in files:
+    print(file)
 
 DISCONNECTAFTERNOTSENDING = 30
 FORMAT = [0, 12, 140, 148]
@@ -46,6 +58,11 @@ def awaitdata(sock):
         del startTimes[sockets.index(sock)]
         del sockets[sockets.index(sock)]
         sock.close()
+        return -1
+    elif recievedlength == "=)vjq0eVnd":
+        send(len(files), sock)
+        for file in files:
+            send(file, sock)
         return -1
     else:
         length = ""
