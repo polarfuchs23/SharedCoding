@@ -61,11 +61,11 @@ print("received:  ", sock.recv(1024).decode("ascii"))
 time.sleep(2)
 
 while True:
-    #time.sleep(0.4)
+    time.sleep(0.4)
     if keyboard.is_pressed('esc'):
         sock.send("g3i3Nf8320".encode("utf-8"))
         break
-    sendstring(1000000 * "a", sock)
+    sendstring(10000000 * "a", sock)
     print("received:  ", awaitdata(sock))
 print()
 print("done")

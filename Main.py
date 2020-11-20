@@ -1,7 +1,11 @@
 import math
 
-def writeFile(name,string):
+def appendFile(name,string):
     with open(name,'a') as file:
+        file.writelines(string)
+
+def writeFile(name,string):
+    with open(name,'w') as file:
         file.writelines(string)
 
 
@@ -20,7 +24,7 @@ def readFileLines(name):
 
 fileContent = readFile("file.test")
 
-writeFile("file.test","a")
+writeFile("file2.test",fileContent)
 
 if fileContent == readFile("file.test"):
     print("same")
