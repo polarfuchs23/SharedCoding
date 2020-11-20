@@ -12,14 +12,14 @@ import FileInterface
 
 def send(content, sock):
     try:
-        sock.send(str(len(content.decode("ascii"))).encode("utf-8") + content)
+        sock.send(str(len(content.decode("ascii"))).encode("utf-8") + "a".encode("utf-8") + content)
     except:
         return -1
 
 
 def sendstring(content, sock):
     try:
-        sock.send((str(len(content)) + content).encode("utf-8"))
+        sock.send((str(len(content)) + "a" + content).encode("utf-8"))
     except:
         return -1
 
@@ -30,9 +30,13 @@ def awaitdata(sock):
         print("Received1:", recievedlength, " ", recievedlength.encode("utf-8"))
         length = ""
         recv_data = b''
+
+        digits=True
         for s in recievedlength:
-            if s.isdigit():
+            if s.isdigit() and digits:
                 length += s
+            elif s == "a" and digits:
+                digits = False
             else:
                 recv_data += s.encode("utf-8")
 
@@ -55,27 +59,35 @@ ip = "mineburg.firewall-gateway.com"
 
 
 print(sock.connect_ex((ip, 5000)))
-sendstring("Data", sock)
+print("sending")
+
+print(sendstring("Data", sock))
 print("received:  ", sock.recv(1024).decode("ascii"))
 
 time.sleep(2)
+
 """
 while True:
     time.sleep(0.4)
     if keyboard.is_pressed('esc'):
         sock.send("g3i3Nf8320".encode("utf-8"))
         break
-    sendstring(10000000 * "a", sock)
-    print("received:  ", awaitdata(sock)
+
+    sendstring(500000 * "b", sock)
+    print("received:  ", awaitdata(sock))
+
 """
+
 sock.send("=)vjq0eVnd".encode("utf-8"))
 fileamount = int(awaitdata(sock))
 print("fileamount:", fileamount)
-for i in range(fileamount-1):
+for i in range(fileamount):
     f = awaitdata(sock)
     print("File:", f)
-    FileInterface.writeFile("output"+i+".txt", f)
+    FileInterface.writeFile("output"+str(i)+".txt", f)
+
 
 sock.send("g3i3Nf8320".encode("utf-8"))
+time.sleep(1)
 print()
 print("done")

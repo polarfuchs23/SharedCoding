@@ -10,14 +10,14 @@ import sys, os
 import FileInterface
 from PrintFormatter import printf
 
-files = []
+filesarray = []
 serverPath = sys.argv[0]
 folderPath = os.path.dirname(serverPath)
 for file in os.listdir(folderPath):
     if os.path.isfile(file) and ".py" not in file:
-        files.append(FileInterface.readFile(file))
+        filesarray.append(FileInterface.readFile(file))
 
-for file in files:
+for file in filesarray:
     print(file)
 
 DISCONNECTAFTERNOTSENDING = 30
@@ -46,10 +46,10 @@ sockets = []
 def awaitdata(sock):
     global runs
     global totaltime
-
     recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
 
     print(recievedlength, " ", recievedlength.encode("utf-8"))
+
     if recievedlength == "g3i3Nf8320":
         sel.unregister(sock)
         print(DEVIDERSTRING)
@@ -60,17 +60,24 @@ def awaitdata(sock):
         sock.close()
         return -1
     elif recievedlength == "=)vjq0eVnd":
-        send(len(files), sock)
-        for file in files:
-            send(file, sock)
+        print("hi")
+        print(str(len(filesarray)))
+        sendstring(str(len(filesarray)), sock)
+        for file in filesarray:
+            sendstring(file, sock)
+            time.sleep(0.1)
         return -1
     else:
         length = ""
         recv_data = b''
         print(recievedlength)
+
+        digits = True
         for s in recievedlength:
-            if s.isdigit():
+            if s.isdigit() and digits:
                 length += s
+            elif s == "a" and digits:
+                digits = False
             else:
                 recv_data += s.encode("utf-8")
 
@@ -119,11 +126,13 @@ def service_connection(key, mask):
         startTimes[sockets.index(sock)] = time.time()
         pass
     if mask & selectors.EVENT_READ:
+        print("hi2")
+        recv_data = awaitdata(sock)
+        if recv_data and recv_data != -1:
+            data.outb += recv_data
+            # printf(["received:", recv_data, "from  ", sock], FORMAT)
         try:
-            recv_data = awaitdata(sock)
-            if recv_data and recv_data != -1:
-                data.outb += recv_data
-                # printf(["received:", recv_data, "from  ", sock], FORMAT)
+            print()
         except:
             sel.unregister(sock)
             print(DEVIDERSTRING)
@@ -141,11 +150,11 @@ def service_connection(key, mask):
 
 
 def send(content, sock):
-    sock.send(str(len(content.decode("ascii"))).encode("utf-8") + content)
+    sock.send(str(len(content.decode("ascii"))).encode("utf-8") + "a".encode("utf-8") + content)
 
 
 def sendstring(content, sock):
-    sock.send((str(len(content)) + content).encode("utf-8"))
+    sock.send((str(len(content)) + "a" + content).encode("utf-8"))
 
 
 while True:

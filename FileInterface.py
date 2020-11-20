@@ -10,18 +10,18 @@ def writeFile(name,string):
 
 
 def readFile(name):
-    with open(name,'r') as file:
+    with open(name, 'r') as file:
         return file.read()
 
 def readFileHex(name):
-    with open(name,'rb') as file:
+    with open(name, 'rb') as file:
         return file.read().hex
 
 def readFileLines(name):
-    with open(name,'r') as file:
+    with open(name, 'r') as file:
         return file.read().split("\n")
 
-
+"""
 fileContent = readFile("file.test")
 
 writeFile("file2.test",fileContent)
@@ -30,7 +30,7 @@ if fileContent == readFile("file.test"):
     print("same")
 else:
     print("different")
-
+"""
 
 
 
