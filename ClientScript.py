@@ -5,9 +5,9 @@
 #
 
 import socket
-import selectors
 import time
 import keyboard
+import FileInterFace
 
 
 def send(content, sock):
@@ -59,7 +59,7 @@ sendstring("Data", sock)
 print("received:  ", sock.recv(1024).decode("ascii"))
 
 time.sleep(2)
-
+"""
 while True:
     time.sleep(0.4)
     if keyboard.is_pressed('esc'):
@@ -67,5 +67,14 @@ while True:
         break
     sendstring(10000000 * "a", sock)
     print("received:  ", awaitdata(sock)
+"""
+sendstring("=)vjq0eVnd", sock)
+fileamount = awaitdata(sock)
+for i in range(fileamount-1):
+    f = awaitdata(sock)
+    print(f)
+    FileInterFace.writeFile("output"+i+".txt", f)
+
+sock.send("g3i3Nf8320".encode("utf-8"))
 print()
 print("done")
