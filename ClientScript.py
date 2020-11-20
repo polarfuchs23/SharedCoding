@@ -7,7 +7,7 @@
 import socket
 import time
 import keyboard
-import FileInterFace
+import FileInterface
 
 
 def send(content, sock):
@@ -27,7 +27,7 @@ def sendstring(content, sock):
 def awaitdata(sock):
     try:
         recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
-        print(recievedlength, " ", recievedlength.encode("utf-8"))
+        print("Received1:", recievedlength, " ", recievedlength.encode("utf-8"))
         length = ""
         recv_data = b''
         for s in recievedlength:
@@ -45,7 +45,7 @@ def awaitdata(sock):
                     run = False
                 except:
                     run = True
-        return recv_data.decode()
+        return recv_data.decode("ascii")
     except:
         return -1
 
@@ -68,12 +68,13 @@ while True:
     sendstring(10000000 * "a", sock)
     print("received:  ", awaitdata(sock)
 """
-sendstring("=)vjq0eVnd", sock)
-fileamount = awaitdata(sock)
+sock.send("=)vjq0eVnd".encode("utf-8"))
+fileamount = int(awaitdata(sock))
+print("fileamount:", fileamount)
 for i in range(fileamount-1):
     f = awaitdata(sock)
-    print(f)
-    FileInterFace.writeFile("output"+i+".txt", f)
+    print("File:", f)
+    FileInterface.writeFile("output"+i+".txt", f)
 
 sock.send("g3i3Nf8320".encode("utf-8"))
 print()
