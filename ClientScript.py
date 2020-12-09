@@ -102,7 +102,7 @@ for i in range(fileamount):
     sock.send(b'/mRJ|M+@m&')
 
     #print("File:", f)
-    FileInterface.writeFileBytes("_"+name, f)
+    FileInterface.writeFileBytes(name, f)
 
 
 sock.send("g3i3Nf8320".encode("utf-8"))
