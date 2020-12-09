@@ -6,7 +6,6 @@
 
 import socket
 import time
-import keyboard
 import FileInterface
 
 
@@ -25,14 +24,20 @@ def sendstring(content, sock):
 
 
 def awaitdata(sock):
-    try:
-        recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
-        print("Received1:", recievedlength, " ", recievedlength.encode("utf-8"))
+    #try:
+        recievedlength = sock.recv(10)  # Should be ready to read
+
+
+        print("Received:", recievedlength)
         length = ""
         recv_data = b''
 
+        recv=recievedlength.split(b'a')
+
+        print(recv)
+
         digits=True
-        for s in recievedlength:
+        for s in recv[0].decode("ascii"):
             if s.isdigit() and digits:
                 length += s
             elif s == "a" and digits:
@@ -41,7 +46,7 @@ def awaitdata(sock):
                 recv_data += s.encode("utf-8")
 
         print(length)
-        while len(recv_data) < int(length):
+        while len(recv_data.decode("ascii")) < int(length):
             run = True
             while run:
                 try:
@@ -49,10 +54,10 @@ def awaitdata(sock):
                     run = False
                 except:
                     run = True
-        return recv_data.decode("ascii")
-    except Exception as e:
-        print(e)
-        return -1
+        return recv_data
+    #except Exception as e:
+    #    print(e)
+    #    return -1
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,11 +86,13 @@ while True:
 
 sock.send("=)vjq0eVnd".encode("utf-8"))
 fileamount = int(awaitdata(sock))
+print()
+print()
 print("fileamount:", fileamount)
 for i in range(fileamount):
     f = awaitdata(sock)
     print("File:", f)
-    FileInterface.writeFile("output"+str(i)+".txt", f)
+    FileInterface.writeFileBytes("output"+str(i)+".txt", f)
 
 
 sock.send("g3i3Nf8320".encode("utf-8"))

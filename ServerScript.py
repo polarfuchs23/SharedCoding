@@ -16,7 +16,7 @@ serverPath = sys.argv[0]
 folderPath = os.path.dirname(serverPath)
 for file in os.listdir(folderPath):
     if os.path.isfile(file) and ".py" not in file:
-        filesarray.append(FileInterface.readFile(file))
+        filesarray.append(FileInterface.readFileBytes(file))
 
 for file in filesarray:
     print(file)
@@ -64,8 +64,9 @@ def awaitdata(sock):
         print("hi")
         print(str(len(filesarray)))
         sendstring(str(len(filesarray)), sock)
+
         for file in filesarray:
-            sendstring(file, sock)
+            send(file, sock)
             time.sleep(0.1)
         return -1
     else:
@@ -151,7 +152,8 @@ def service_connection(key, mask):
 
 
 def send(content, sock):
-    sock.send(str(len(content.decode("ascii"))).encode("utf-8") + "a".encode("utf-8") + content)
+    sock.send(str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
+    print(str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
 
 
 def sendstring(content, sock):
