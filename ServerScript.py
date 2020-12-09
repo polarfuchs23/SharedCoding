@@ -16,7 +16,8 @@ serverPath = sys.argv[0]
 folderPath = os.path.dirname(serverPath)
 for file in os.listdir(folderPath):
     if os.path.isfile(file) and ".py" not in file:
-        filesarray.append(FileInterface.readFileBytes(file))
+        name, extension = os.path.splitext(file)
+        filesarray.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readFileBytes(file))
 
 for file in filesarray:
     print(file)
@@ -61,7 +62,7 @@ def awaitdata(sock):
         sock.close()
         return -1
     elif recievedlength == "=)vjq0eVnd":
-        print("hi")
+        print("Received file request")
         print("fileamount: ",str(len(filesarray)))
         sendstring(str(len(filesarray)), sock)
 
@@ -128,8 +129,9 @@ def service_connection(key, mask):
         startTimes[sockets.index(sock)] = time.time()
         pass
     if mask & selectors.EVENT_READ:
-        print("hi2")
+        print("Received data")
         recv_data = awaitdata(sock)
+        print(recv_data)
         if recv_data and recv_data != -1:
             data.outb += recv_data
             # printf(["received:", recv_data, "from  ", sock], FORMAT)
@@ -152,13 +154,13 @@ def service_connection(key, mask):
 
 
 def send(content, sock):
-    sock.send(str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
-    print("send: ",str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
+    sock.send(str(len(content)).encode("utf-8") + "qyz".encode("utf-8") + content)
+    #print("send: ", str(len(content)).encode("utf-8") + "qyz".encode("utf-8") + content)
 
 
 def sendstring(content, sock):
-    sock.send((str(len(content)) + "a" + content).encode("utf-8"))
-    print("send: ",(str(len(content)) + "a" + content).encode("utf-8"))
+    sock.send((str(len(content)) + "qyz" + content).encode("utf-8"))
+    print("send: ",(str(len(content)) + "qyz" + content).encode("utf-8"))
 
 
 while True:

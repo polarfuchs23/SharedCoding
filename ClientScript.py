@@ -25,40 +25,45 @@ def sendstring(content, sock):
 
 def awaitdata(sock):
     #try:
-        recievedlength = sock.recv(10)  # Should be ready to read
+    recievedlength = sock.recv(80)  # Should be ready to read
 
 
-        print("Received:", recievedlength)
-        length = ""
-        recv_data = b''
+    print("Received:", recievedlength)
+    length = ""
+    recv_data = b''
 
-        recv=recievedlength.split(b'a', 1)
+    recv=recievedlength.split(b'qyz', 2)
 
-        print(recv)
+    print("Splited received: ", recv)
+    filename = -1
+    for s in recv[0].decode("ascii"):
+        length += s
+    if len(recv) == 3:
+        length = str(int(length)-3-len(recv[1]))
 
-        for s in recv[0].decode("ascii"):
-            length += s
-
+    if len(recv) == 2:
         recv_data += recv[1]
+    else:
+        filename = recv[1].decode("ascii")
+        recv_data += recv[2]
 
-        print("length ", length)
-
-        while len(recv_data) < int(length):
-            run = True
-            while run:
-                try:
-                    recv_data += (sock.recv(int(length)))
-                    run = False
-                except:
-                    run = True
-        return recv_data
-    #except Exception as e:
-    #    print(e)
-    #    return -1
+    print("length ", length)
+    while len(recv_data) < int(length):
+        run = True
+        while run:
+            try:
+                recv_data += (sock.recv(int(length)))
+                run = False
+            except:
+                run = True
+    return recv_data, filename
+#except Exception as e:
+#    print(e)
+#    return -1
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "mineburg.firewall-gateway.com"
+ip = "192.168.0.203"
 
 
 print(sock.connect_ex((ip, 5000)))
@@ -75,21 +80,20 @@ while True:
     if keyboard.is_pressed('esc'):
         sock.send("g3i3Nf8320".encode("utf-8"))
         break
-
     sendstring(500000 * "b", sock)
     print("received:  ", awaitdata(sock))
-
 """
 
 sock.send("=)vjq0eVnd".encode("utf-8"))
-fileamount = int(awaitdata(sock))
+fileamount, rubbish = awaitdata(sock)
+fileamount = int(fileamount)
 print()
 print()
 print("fileamount:", fileamount)
 for i in range(fileamount):
-    f = awaitdata(sock)
+    f, name = awaitdata(sock)
     print("File:", f)
-    FileInterface.writeFileBytes("output"+str(i)+".txt", f)
+    FileInterface.writeFileBytes("_"+name, f)
 
 
 sock.send("g3i3Nf8320".encode("utf-8"))
