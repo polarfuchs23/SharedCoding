@@ -9,6 +9,11 @@ import time
 import FileInterface
 
 
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+ip = "mineburg.firewall-gateway.com"
+
+
+
 def send(content, sock):
     try:
         sock.send(str(len(content.decode("ascii"))).encode("utf-8") + "a".encode("utf-8") + content)
@@ -25,27 +30,20 @@ def sendstring(content, sock):
 
 def awaitdata(sock):
     #try:
-    recievedlength = sock.recv(80)  # Should be ready to read
-
+    recievedlength = sock.recv(15)  # Should be ready to read
 
     print("Received:", recievedlength)
     length = ""
     recv_data = b''
 
-    recv=recievedlength.split(b'qyz', 2)
+    recv= recievedlength.split(b'qyz', 1)
 
     print("Splited received: ", recv)
-    filename = -1
+
     for s in recv[0].decode("ascii"):
         length += s
-    if len(recv) == 3:
-        length = str(int(length)-3-len(recv[1]))
 
-    if len(recv) == 2:
-        recv_data += recv[1]
-    else:
-        filename = recv[1].decode("ascii")
-        recv_data += recv[2]
+    recv_data += recv[1]
 
     print("length ", length)
     while len(recv_data) < int(length):
@@ -56,14 +54,21 @@ def awaitdata(sock):
                 run = False
             except:
                 run = True
+
+
+    filename = -1
+
+    recv = recv_data.split(b'qyz', 1)
+    if len(recv) == 2:
+        filename = recv[0].decode("ascii")
+        recv_data = recv[1]
+
+
     return recv_data, filename
+
 #except Exception as e:
 #    print(e)
 #    return -1
-
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-ip = "192.168.0.203"
 
 
 print(sock.connect_ex((ip, 5000)))
