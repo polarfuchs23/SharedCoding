@@ -27,9 +27,7 @@ def sendstring(content, sock):
     except:
         return -1
 
-
 def awaitdata(sock):
-    #try:
     recievedlength = sock.recv(15)  # Should be ready to read
 
     print("Received:", recievedlength)
@@ -50,10 +48,17 @@ def awaitdata(sock):
         run = True
         while run:
             try:
-                recv_data += (sock.recv(int(length)))
+                recv_data += (sock.recv(int(length)-len(recv_data)))
                 run = False
             except:
                 run = True
+    return  recv_data;
+
+
+
+def awaitFile(sock):
+
+    recv_data=awaitdata(sock)
 
 
     filename = -1
@@ -63,12 +68,8 @@ def awaitdata(sock):
         filename = recv[0].decode("ascii")
         recv_data = recv[1]
 
-
     return recv_data, filename
 
-#except Exception as e:
-#    print(e)
-#    return -1
 
 
 print(sock.connect_ex((ip, 5000)))
@@ -90,14 +91,17 @@ while True:
 """
 
 sock.send("=)vjq0eVnd".encode("utf-8"))
-fileamount, rubbish = awaitdata(sock)
+fileamount, rubbish = awaitFile(sock)
 fileamount = int(fileamount)
 print()
 print()
 print("fileamount:", fileamount)
 for i in range(fileamount):
-    f, name = awaitdata(sock)
-    print("File:", f)
+    f, name = awaitFile(sock)
+
+    sock.send(b'/mRJ|M+@m&')
+
+    #print("File:", f)
     FileInterface.writeFileBytes("_"+name, f)
 
 

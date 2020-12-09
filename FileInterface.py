@@ -36,14 +36,14 @@ def readFileLines(name):
 
 
 
-""""
-fileContent = readFileBytes("testImage.jpg")
+"""
+fileContent = readFileBytes("Chemie Orbitalmodell-1.pptx")
 
 
 print(fileContent)
 
 
-writeFileBytes("file.test2",fileContent)
+writeFileBytes("Chemie Orbitalmodell-2.pptx",fileContent)
 """
 
 

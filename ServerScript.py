@@ -45,6 +45,44 @@ global sockets
 startTimes = []
 sockets = []
 
+
+
+
+def disconnect(sock):
+    sel.unregister(sock)
+    print(DEVIDERSTRING)
+    print("disconnected: ", sock)
+    print(DEVIDERSTRING)
+    del startTimes[sockets.index(sock)]
+    del sockets[sockets.index(sock)]
+    sock.close()
+    return -1
+
+
+def filerequest(sock):
+    print("Received file request")
+    print("fileamount: ",str(len(filesarray)))
+    sendstring(str(len(filesarray)), sock)
+
+
+    for file in filesarray:
+        send(file, sock)
+
+        while True:
+            try:
+                recv = sock.recv(10).decode("ascii")
+                if recv=="/mRJ|M+@m&":
+                    break
+            except:
+                pass
+
+    return -1
+
+
+
+
+
+
 def awaitdata(sock):
     global runs
     global totaltime
@@ -53,24 +91,15 @@ def awaitdata(sock):
     print(recievedlength, " ", recievedlength.encode("utf-8"))
 
     if recievedlength == "g3i3Nf8320":
-        sel.unregister(sock)
-        print(DEVIDERSTRING)
-        print("disconnected: ", sock)
-        print(DEVIDERSTRING)
-        del startTimes[sockets.index(sock)]
-        del sockets[sockets.index(sock)]
-        sock.close()
-        return -1
-    elif recievedlength == "=)vjq0eVnd":
-        print("Received file request")
-        print("fileamount: ",str(len(filesarray)))
-        sendstring(str(len(filesarray)), sock)
 
-        for file in filesarray:
-            send(file, sock)
-            time.sleep(0.1)
-        return -1
+        return disconnect(sock)
+
+    elif recievedlength == "=)vjq0eVnd":
+
+        return filerequest(sock)
+
     else:
+
         length = ""
         recv_data = b''
         print(recievedlength)
@@ -138,13 +167,7 @@ def service_connection(key, mask):
         try:
             print()
         except:
-            sel.unregister(sock)
-            print(DEVIDERSTRING)
-            print("disconnected: ", sock)
-            print(DEVIDERSTRING)
-            del startTimes[sockets.index(sock)]
-            del sockets[sockets.index(sock)]
-            sock.close()
+            disconnect(sock)
 
     elif mask & selectors.EVENT_WRITE:
         if data.outb:
