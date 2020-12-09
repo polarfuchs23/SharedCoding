@@ -1,33 +1,32 @@
 #
-#       note: sending images etc. doesnt work
-#       expand on send hex and resieving hex
+#       notes:  -taking files in folders into account
+#               -sending both ways
+#               -checking for changes in files (Asynchronus?!)
 #
 
 import socket
 import selectors
 import time
 import types
-import sys, os
+import sys
+import os
 import FileInterface
 from PrintFormatter import printf
 
 filesarray = []
+
+
 serverPath = sys.argv[0]
 folderPath = os.path.dirname(serverPath)
 for file in os.listdir(folderPath):
     if os.path.isfile(file) and ".py" not in file:
         name, extension = os.path.splitext(file)
-        filesarray.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readFileBytes(file))
+        filesarray.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readfilebytes(file))
 
-for file in filesarray:
-    print(file)
 
 DISCONNECTAFTERNOTSENDING = 30
 FORMAT = [0, 12, 140, 148]
 DEVIDERSTRING = 500 * "-"
-
-runs = 0
-totaltime = 0
 
 sel = selectors.DefaultSelector()
 lsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,9 +45,8 @@ startTimes = []
 sockets = []
 
 
-
-
 def disconnect(sock):
+    print("Received disconnect request")
     sel.unregister(sock)
     print(DEVIDERSTRING)
     print("disconnected: ", sock)
@@ -59,11 +57,10 @@ def disconnect(sock):
     return -1
 
 
-def filerequest(sock):
+def awnserfilerequest(sock):
     print("Received file request")
-    print("fileamount: ",str(len(filesarray)))
+    print("fileamount: ", str(len(filesarray)))
     sendstring(str(len(filesarray)), sock)
-
 
     for file in filesarray:
         send(file, sock)
@@ -71,7 +68,7 @@ def filerequest(sock):
         while True:
             try:
                 recv = sock.recv(10).decode("ascii")
-                if recv=="/mRJ|M+@m&":
+                if recv == "/mRJ|M+@m&":
                     break
             except:
                 pass
@@ -79,60 +76,51 @@ def filerequest(sock):
     return -1
 
 
-
-
-
-
 def awaitdata(sock):
-    global runs
-    global totaltime
-    recievedlength = sock.recv(10).decode("ascii")  # Should be ready to read
+    recieved = sock.recv(10)
 
-    print(recievedlength, " ", recievedlength.encode("utf-8"))
+    print("Received:", recieved)
 
-    if recievedlength == "g3i3Nf8320":
-
+    if recieved == b'g3i3Nf8320':
         return disconnect(sock)
 
-    elif recievedlength == "=)vjq0eVnd":
-
-        return filerequest(sock)
+    elif recieved == b'=)vjq0eVnd':
+        return awnserfilerequest(sock)
 
     else:
+        return getdata(recieved, sock)
 
-        length = ""
-        recv_data = b''
-        print(recievedlength)
 
-        digits = True
-        for s in recievedlength:
-            if s.isdigit() and digits:
-                length += s
-            elif s == "a" and digits:
-                digits = False
-            else:
-                recv_data += s.encode("utf-8")
+def getdata(recieved, sock):
+    length = ""
+    recv_data = b''
 
-        print(length)
-        t1 = time.time();
-        while len(recv_data) < int(length):
-            run = True
-            while run:
-                try:
-                    recv_data += (sock.recv(int(length)))
-                    run = False
-                except:
-                    run = True
+    recv = recieved.split(b'a', 1)
 
-        totaltime += time.time() - t1
-        runs += 1
+    for s in recv[0].decode("ascii"):
+        length += s
 
-        print("took", time.time() - t1)
+    recv_data += recv[1]
 
-        print("average", totaltime / runs, "over", runs, "runs")
+    while len(recv_data) < int(length):
+        run = True
+        while run:
+            try:
+                recv_data += (sock.recv(int(length)-len(recv_data)))
+                run = False
+            except:
+                run = True
+    return recv_data
 
-        return recv_data
 
+def send(content, sock):
+    sock.send(str(len(content)).encode("utf-8") + b'a' + content)
+#   print("send: ", str(len(content)).encode("utf-8") + b'a' + content)
+
+
+def sendstring(content, sock):
+    sock.send((str(len(content)) + "a" + content).encode("utf-8"))
+#   print("send: ", (str(len(content)) + "a" + content).encode("utf-8"))
 
 
 def accept_wrapper(sock):
@@ -147,8 +135,6 @@ def accept_wrapper(sock):
 
 
 def service_connection(key, mask):
-    global runs
-    global totaltime
     sock = key.fileobj
     data = key.data
     if sock not in sockets:
@@ -158,9 +144,8 @@ def service_connection(key, mask):
         startTimes[sockets.index(sock)] = time.time()
         pass
     if mask & selectors.EVENT_READ:
-        print("Received data")
         recv_data = awaitdata(sock)
-        print(recv_data)
+
         if recv_data and recv_data != -1:
             data.outb += recv_data
             # printf(["received:", recv_data, "from  ", sock], FORMAT)
@@ -174,16 +159,6 @@ def service_connection(key, mask):
             # printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
             send(data.outb, sock)
             data.outb = b''
-
-
-def send(content, sock):
-    sock.send(str(len(content)).encode("utf-8") + "qyz".encode("utf-8") + content)
-    #print("send: ", str(len(content)).encode("utf-8") + "qyz".encode("utf-8") + content)
-
-
-def sendstring(content, sock):
-    sock.send((str(len(content)) + "qyz" + content).encode("utf-8"))
-    print("send: ",(str(len(content)) + "qyz" + content).encode("utf-8"))
 
 
 while True:

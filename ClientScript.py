@@ -13,10 +13,9 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ip = "mineburg.firewall-gateway.com"
 
 
-
 def send(content, sock):
     try:
-        sock.send(str(len(content.decode("ascii"))).encode("utf-8") + "a".encode("utf-8") + content)
+        sock.send(str(len(content.decode("ascii"))).encode("utf-8") + b'a' + content)
     except:
         return -1
 
@@ -27,6 +26,7 @@ def sendstring(content, sock):
     except:
         return -1
 
+
 def awaitdata(sock):
     recievedlength = sock.recv(15)  # Should be ready to read
 
@@ -34,16 +34,13 @@ def awaitdata(sock):
     length = ""
     recv_data = b''
 
-    recv= recievedlength.split(b'qyz', 1)
-
-    print("Splited received: ", recv)
+    recv = recievedlength.split(b'a', 1)
 
     for s in recv[0].decode("ascii"):
         length += s
 
     recv_data += recv[1]
 
-    print("length ", length)
     while len(recv_data) < int(length):
         run = True
         while run:
@@ -52,14 +49,12 @@ def awaitdata(sock):
                 run = False
             except:
                 run = True
-    return  recv_data;
+    return recv_data
 
 
+def awaitfile(sock):
 
-def awaitFile(sock):
-
-    recv_data=awaitdata(sock)
-
+    recv_data = awaitdata(sock)
 
     filename = -1
 
@@ -71,14 +66,13 @@ def awaitFile(sock):
     return recv_data, filename
 
 
-
 print(sock.connect_ex((ip, 5000)))
-print("sending")
+print("Sending")
 
 print(sendstring("Data", sock))
-print("received:  ", sock.recv(1024).decode("ascii"))
+print("Received:  ", sock.recv(1024).decode("ascii"))
 
-time.sleep(2)
+time.sleep(1)
 
 """
 while True:
@@ -91,18 +85,18 @@ while True:
 """
 
 sock.send("=)vjq0eVnd".encode("utf-8"))
-fileamount, rubbish = awaitFile(sock)
+fileamount, rubbish = awaitfile(sock)
 fileamount = int(fileamount)
 print()
 print()
 print("fileamount:", fileamount)
 for i in range(fileamount):
-    f, name = awaitFile(sock)
+    f, name = awaitfile(sock)
 
     sock.send(b'/mRJ|M+@m&')
 
-    #print("File:", f)
-    FileInterface.writeFileBytes(name, f)
+#   print("File:", f)
+    FileInterface.writefilebytes(name, f)
 
 
 sock.send("g3i3Nf8320".encode("utf-8"))
