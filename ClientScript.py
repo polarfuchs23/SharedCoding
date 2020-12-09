@@ -32,21 +32,18 @@ def awaitdata(sock):
         length = ""
         recv_data = b''
 
-        recv=recievedlength.split(b'a')
+        recv=recievedlength.split(b'a', 1)
 
         print(recv)
 
-        digits=True
         for s in recv[0].decode("ascii"):
-            if s.isdigit() and digits:
-                length += s
-            elif s == "a" and digits:
-                digits = False
-            else:
-                recv_data += s.encode("utf-8")
+            length += s
 
-        print(length)
-        while len(recv_data.decode("ascii")) < int(length):
+        recv_data += recv[1]
+
+        print("length ", length)
+
+        while len(recv_data) < int(length):
             run = True
             while run:
                 try:

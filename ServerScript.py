@@ -62,7 +62,7 @@ def awaitdata(sock):
         return -1
     elif recievedlength == "=)vjq0eVnd":
         print("hi")
-        print(str(len(filesarray)))
+        print("fileamount: ",str(len(filesarray)))
         sendstring(str(len(filesarray)), sock)
 
         for file in filesarray:
@@ -153,11 +153,12 @@ def service_connection(key, mask):
 
 def send(content, sock):
     sock.send(str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
-    print(str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
+    print("send: ",str(len(content)).encode("utf-8") + "a".encode("utf-8") + content)
 
 
 def sendstring(content, sock):
     sock.send((str(len(content)) + "a" + content).encode("utf-8"))
+    print("send: ",(str(len(content)) + "a" + content).encode("utf-8"))
 
 
 while True:
