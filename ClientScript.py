@@ -11,7 +11,7 @@ import FileInterface
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ip = "mineburg.firewall-gateway.com"
-
+ip = "192.168.0.203"
 
 def send(content, sock):
     try:

@@ -13,16 +13,39 @@ import os
 import FileInterface
 from PrintFormatter import printf
 
-filesarray = []
+#filesarray = []
+def searchFiles(folderPath, allFiles):
+    subFolders = []
+    print("Searching files in directory: " + folderPath)
+    for file in os.listdir(folderPath):
+        print("Directory: ", folderPath + "/" + file)
+        print("     File: ", os.path.isfile(folderPath + "/" + file))
+        print("     Folder: ", os.path.isdir(file))
+        if os.path.isfile(folderPath + "/" + file) and ".py" not in file:
+            print("Found file: ", folderPath + "/" + file)
+            name, extension = os.path.splitext(file)
+            allFiles.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readfilebytes(folderPath + "/" + file))
+        elif os.path.isdir(file):
+            subFolders.append(file)
+            print("Scanning new folder...", )
+            allSubFiles = []
+            print("Files in directory " , folderPath + "/" + file, ": ", allSubFiles)
+            allSubFiles = searchFiles(folderPath + "/" + file, allSubFiles)
+            print("Files in directory " , folderPath + "/" + file, ": ", allSubFiles)
+            for subFile in allSubFiles:
+                firstPart, secondPart = subFile.split(b'qyz')
+                firstPart = firstPart.decode("ascii")
+                firstPart = ( file + "/" + firstPart).encode("utf-8")
+                subFile = firstPart + b'qyz' + secondPart
+                allFiles.append(subFile)
+    return allFiles
+    pass
 
-
+emptyArray = []
 serverPath = sys.argv[0]
 folderPath = os.path.dirname(serverPath)
-for file in os.listdir(folderPath):
-    if os.path.isfile(file) and ".py" not in file:
-        name, extension = os.path.splitext(file)
-        filesarray.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readfilebytes(file))
-
+filesarray = searchFiles(folderPath, emptyArray)
+#print(filesarray)
 
 DISCONNECTAFTERNOTSENDING = 30
 FORMAT = [0, 12, 140, 148]
