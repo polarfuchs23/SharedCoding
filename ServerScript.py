@@ -13,29 +13,33 @@ import os
 import FileInterface
 from PrintFormatter import printf
 
+'''
+
+            Codes (Client perspective)
+---------------------------------------------------              
+| Disconnect:                     g3i3Nf8320:wJd[ |
+| Request files:                  =)vjq0eVnd)sth} |
+| Received file:                  /mRJ|M+@m&NND@N |
+| Request to send files:          5whR;FGW)>:62hO |
+---------------------------------------------------
+
+'''
+
 #filesarray = []
 def searchFiles(folderPath, allFiles):
     subFolders = []
-    print("Searching files in directory: " + folderPath)
     for file in os.listdir(folderPath):
-        print("Directory: ", folderPath + "/" + file)
-        print("     File: ", os.path.isfile(folderPath + "/" + file))
-        print("     Folder: ", os.path.isdir(file))
         if os.path.isfile(folderPath + "/" + file) and ".py" not in file:
-            print("Found file: ", folderPath + "/" + file)
             name, extension = os.path.splitext(file)
             allFiles.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readfilebytes(folderPath + "/" + file))
-        elif os.path.isdir(file):
+        elif os.path.isdir(os.path.join(folderPath, file)):
             subFolders.append(file)
-            print("Scanning new folder...", )
             allSubFiles = []
-            print("Files in directory " , folderPath + "/" + file, ": ", allSubFiles)
-            allSubFiles = searchFiles(folderPath + "/" + file, allSubFiles)
-            print("Files in directory " , folderPath + "/" + file, ": ", allSubFiles)
+            allSubFiles = searchFiles(os.path.join(folderPath, file), allSubFiles)
             for subFile in allSubFiles:
                 firstPart, secondPart = subFile.split(b'qyz')
                 firstPart = firstPart.decode("ascii")
-                firstPart = ( file + "/" + firstPart).encode("utf-8")
+                firstPart = (file + "/" + firstPart).encode("utf-8")
                 subFile = firstPart + b'qyz' + secondPart
                 allFiles.append(subFile)
     return allFiles
@@ -90,8 +94,8 @@ def awnserfilerequest(sock):
 
         while True:
             try:
-                recv = sock.recv(10).decode("ascii")
-                if recv == "/mRJ|M+@m&":
+                recv = sock.recv(15).decode("ascii")
+                if recv == "/mRJ|M+@m&NND@N":
                     break
             except:
                 pass
@@ -100,15 +104,16 @@ def awnserfilerequest(sock):
 
 
 def awaitdata(sock):
-    recieved = sock.recv(10)
+    recieved = sock.recv(15)
 
-    print("Received:", recieved)
-
-    if recieved == b'g3i3Nf8320':
+    if recieved == b'g3i3Nf8320:wJd[':
         return disconnect(sock)
 
-    elif recieved == b'=)vjq0eVnd':
+    elif recieved == b'=)vjq0eVnd)sth}':
         return awnserfilerequest(sock)
+
+    elif recieved == b'':
+        return -1
 
     else:
         return getdata(recieved, sock)
@@ -133,6 +138,14 @@ def getdata(recieved, sock):
                 run = False
             except:
                 run = True
+
+    recvParts = recv_data.split(b'qyz')
+    if len(recvParts) == 2:
+        filename = recvParts[0].decode("ascii")
+        print("Received ", filename)
+        recv_data = recvParts[1]
+        FileInterface.writefilebytes(filename, recv_data)
+
     return recv_data
 
 
@@ -160,25 +173,36 @@ def accept_wrapper(sock):
 def service_connection(key, mask):
     sock = key.fileobj
     data = key.data
+
     if sock not in sockets:
         startTimes.append(time.time())
         sockets.append(sock)
-    else:
-        startTimes[sockets.index(sock)] = time.time()
-        pass
+
+
     if mask & selectors.EVENT_READ:
-        recv_data = awaitdata(sock)
+        startTimes[sockets.index(sock)] = time.time()
+
+        print("read")
+        recv_data=-1;
+        try:
+            recv_data = awaitdata(sock)
+        except ConnectionResetError:
+            disconnect(sock)
 
         if recv_data and recv_data != -1:
             data.outb += recv_data
             # printf(["received:", recv_data, "from  ", sock], FORMAT)
-        try:
-            print()
-        except:
+        elif recv_data==-1:
+            pass
+        else:
+            print("\033[93m"+ str(recv_data) + " was Recieved even though the selector had an EVENT_READ!"
+                                               " there might be a problem"+"\033[0;0m")
             disconnect(sock)
+
 
     elif mask & selectors.EVENT_WRITE:
         if data.outb:
+            print("write")
             # printf(["echoing:", repr(data.outb), "to", data.addr], FORMAT)
             send(data.outb, sock)
             data.outb = b''
@@ -188,7 +212,7 @@ while True:
     events = sel.select()
     for i in range(-1, len(startTimes) - 1):
         if time.time() - startTimes[i] > DISCONNECTAFTERNOTSENDING:
-            sockets[i].send(b'Your were disconnected')
+            send(b'You were disconnected', sockets[i])
             sel.unregister(sockets[i])
             print(DEVIDERSTRING)
             print("disconnected: ", sockets[i])

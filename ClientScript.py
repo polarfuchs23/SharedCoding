@@ -7,11 +7,47 @@
 import socket
 import time
 import FileInterface
+import os
+import sys
+
+
+'''
+
+            Codes (Client perspective)
+---------------------------------------------------               
+| Disconnect:                     g3i3Nf8320:wJd[ |
+| Request files:                  =)vjq0eVnd)sth} |
+| Received file:                  /mRJ|M+@m&NND@N |
+| Request to send files:          5whR;FGW)>:62hO |
+---------------------------------------------------
+
+'''
+
 
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 ip = "mineburg.firewall-gateway.com"
 ip = "192.168.0.203"
+
+
+def searchFiles(folderPath, allFiles):
+    subFolders = []
+    for file in os.listdir(folderPath):
+        if os.path.isfile(folderPath + "/" + file) and ".py" not in file:
+            name, extension = os.path.splitext(file)
+            allFiles.append((name+extension).encode("utf-8") + b'qyz' + FileInterface.readfilebytes(folderPath + "/" + file))
+        elif os.path.isdir(os.path.join(folderPath, file)):
+            subFolders.append(file)
+            allSubFiles = []
+            allSubFiles = searchFiles(os.path.join(folderPath, file), allSubFiles)
+            for subFile in allSubFiles:
+                firstPart, secondPart = subFile.split(b'qyz')
+                firstPart = firstPart.decode("ascii")
+                firstPart = ( file + "/" + firstPart).encode("utf-8")
+                subFile = firstPart + b'qyz' + secondPart
+                allFiles.append(subFile)
+    return allFiles
+    pass
 
 def send(content, sock):
     try:
@@ -78,28 +114,40 @@ time.sleep(1)
 while True:
     time.sleep(0.4)
     if keyboard.is_pressed('esc'):
-        sock.send("g3i3Nf8320".encode("utf-8"))
+        sock.send("g3i3Nf8320:wJd[".encode("utf-8"))
         break
     sendstring(500000 * "b", sock)
     print("received:  ", awaitdata(sock))
 """
 
-sock.send("=)vjq0eVnd".encode("utf-8"))
-fileamount, rubbish = awaitfile(sock)
-fileamount = int(fileamount)
-print()
-print()
-print("fileamount:", fileamount)
-for i in range(fileamount):
-    f, name = awaitfile(sock)
+def requestFiles():
+    sock.send("=)vjq0eVnd)sth}".encode("utf-8"))
+    fileamount, rubbish = awaitfile(sock)
+    fileamount = int(fileamount)
+    print()
+    print()
+    print("fileamount:", fileamount)
+    for i in range(fileamount):
+        f, name = awaitfile(sock)
 
-    sock.send(b'/mRJ|M+@m&')
+        sock.send(b'/mRJ|M+@m&NND@N')
 
-#   print("File:", f)
-    FileInterface.writefilebytes(name, f)
+    #   print("File:", f)
+        FileInterface.writefilebytes(name, f)
+
+def sendFiles():
+    emptyArray = []
+    clientPath = sys.argv[0]
+    folderPath = os.path.dirname(clientPath)
+    filesarray = searchFiles(folderPath, emptyArray)
+    for file in filesarray:
+        print("Sending ", file)
+        send(file, sock)
+
+#requestFiles()
+sendFiles()
 
 
-sock.send("g3i3Nf8320".encode("utf-8"))
+sock.send("g3i3Nf8320:wJd[".encode("utf-8"))
 time.sleep(1)
-print()
 print("done")

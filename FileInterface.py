@@ -13,15 +13,18 @@ def writefile(name, string):
 
 def writefilebytes(name, b):
     if '/' in name:
-        parts = name[::-1].split("/", 1)
-        parts.pop(0)
-        parts[0] = parts[0][::-1]
-        if not os.path.exists(os.path.dirname(sys.argv[0]) + "/" + parts[0]):
-            os.mkdir(os.path.dirname(sys.argv[0]) + "/" + parts[0])
-    with open(name, 'wb') as file:
+        parts = name.split("/")
+        parts.pop(len(parts)-1)
+        for partAmount in range(1, len(parts)+1):
+            checkDir = ""
+            for part in range(partAmount):
+                checkDir += "/" + parts[part]
+            if not os.path.exists(os.path.dirname(sys.argv[0]) + checkDir):
+                os.mkdir(os.path.dirname(sys.argv[0]) + checkDir)
+    with open(os.path.dirname(sys.argv[0]) + "/" + name, 'wb') as file:
         file.write(b)
-    with open(name, 'wb') as file:
-        file.write(b)
+    #with open(name, 'wb') as file:
+    #    file.write(b)
 
 
 def readfile(name):
