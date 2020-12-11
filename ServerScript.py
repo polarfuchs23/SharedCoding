@@ -11,8 +11,8 @@ import types
 import sys
 import os
 import FileInterface
-from PrintFormatter import printf
 
+# Unfold for codes
 '''
 
             Codes (Client perspective)
@@ -38,9 +38,9 @@ def searchFiles(folderPath, allFiles):
             allSubFiles = searchFiles(os.path.join(folderPath, file), allSubFiles)
             for subFile in allSubFiles:
                 firstPart, secondPart = subFile.split(b'qyz')
-                firstPart = firstPart.decode("ascii")
-                firstPart = (file + "/" + firstPart).encode("utf-8")
-                subFile = firstPart + b'qyz' + secondPart
+                #firstPart = firstPart.decode("ascii")
+                #firstPart = (file + "/" + firstPart).encode("utf-8")
+                subFile = file.encode("utf-8") + b'/' + firstPart + b'qyz' + secondPart
                 allFiles.append(subFile)
     return allFiles
     pass
