@@ -27,7 +27,3 @@ if fileContent == readFile("file.test"):
 else:
     print("different")
 
-
-
-
-
